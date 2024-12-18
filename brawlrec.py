@@ -1,11 +1,13 @@
 #!python3
 import sys
 import json
+import sqlite3
 from pyedhrec import EDHRec
 
 ### VARS ###
 scry_active = True
 bulk_path='scryData/oracle.json'
+db_path='scrydb.sqlite'
 commanderCard = "The Ur-Dragon"
 
 #import bulk data from scryfall
@@ -15,15 +17,44 @@ def import_bulk(bulk_path):
         json_data.close()
     return data
 
-def findMatches(relatives, data):
+def start_db(db_path):
+    data = import_bulk(bulk_path)
+    con = sqlite3.connect(db_path)
+    cursor = con.cursor()
+    cursor.execute('DROP TABLE IF EXISTS card_table;')
+    con.commit()
+    cursor.execute('CREATE TABLE IF NOT EXISTS card_table (id INTEGER PRIMARY KEY AUTOINCREMENT, name text NOT NULL, imgurl text NOT NULL);')
+    con.commit()
+    for item in data:
+        if not item['legalities']['brawl'] == "legal":
+            continue
+        if 'image_uris' not in item.keys():
+            imgurl = item['card_faces'][0]['image_uris']['normal']
+        else:
+            imgurl = item['image_uris']['normal']
+
+        sql = '''INSERT INTO card_table(name,imgurl)
+                 VALUES(?,?) '''
+        item_data = (item['name'],imgurl)
+        cursor.execute(sql, item_data)
+    con.commit()
+    con.close()
+    
+
+def findMatches(relatives):
+    con = sqlite3.connect(db_path)
+    cursor = con.cursor()
+    cursor.execute('SELECT * FROM card_table')
+    data = cursor.fetchall()
     recList = []
     for category in relatives:
         cat1 = relatives[category]
         for i in cat1:
             for card in data:
-                if card['name'] ==  i['name']:
-                    if card['legalities']['brawl'] == 'legal':
-                        recList.append(card)
+                #print(card[1])
+                if card[1] ==  i['name']:
+                    recList.append(card)
+    con.close()
     return recList
 
 def writeHTML(recList, filename):
@@ -37,12 +68,12 @@ def writeHTML(recList, filename):
 
 def getMatches(commanderCard):
     #load scryfall data
-    scrydata = import_bulk(bulk_path)
+    #scrydata = import_bulk(bulk_path)
     #setup edhrec api
     edhrec = EDHRec()
     #get related cards from edhrec
     relatives = edhrec.get_commander_cards(commanderCard)
-    recList = findMatches(relatives, scrydata)
+    recList = findMatches(relatives)
     return recList
 
 def main():
@@ -61,14 +92,17 @@ def main():
         sys.exit(1)
     
     commanderCard = args.commander
+    cursor = start_db(db_path)
     recList = getMatches(commanderCard)
 
     #return results to terminal
     for item in recList:
-        print("1 "+item['name'])
+        print("1 "+item[1])
     if args.filename:
         writeHTML(recList, args.filename)
 
+
+start_db(db_path)
 if __name__ == "__main__":
     main()
 

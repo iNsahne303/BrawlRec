@@ -3,6 +3,11 @@ from flask import Flask,request,render_template,redirect
 import brawlrec
 
 app = Flask(__name__)
+#db_path="scrydb.sqlite"
+#cursor = brawlrec.start_db(db_path)
+
+
+#initialize read only db
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
