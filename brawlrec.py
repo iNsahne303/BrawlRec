@@ -8,6 +8,7 @@ from pyedhrec import EDHRec
 scry_active = True
 bulk_path='scryData/oracle.json'
 db_path='scrydb.sqlite'
+cmd_db_path='commanderdb.sqlite'
 commanderCard = "The Ur-Dragon"
 
 #import bulk data from scryfall
@@ -17,7 +18,8 @@ def import_bulk(bulk_path):
         json_data.close()
     return data
 
-def start_db(db_path):
+def start_db(db_path, cmd_db_path):
+    #build cards db
     data = import_bulk(bulk_path)
     con = sqlite3.connect(db_path)
     cursor = con.cursor()
@@ -38,8 +40,33 @@ def start_db(db_path):
         item_data = (item['name'],imgurl)
         cursor.execute(sql, item_data)
     con.commit()
+    #build cmd table
+    cursor.execute('DROP TABLE IF EXISTS commander_table;')
+    con.commit()
+    #build cmd db
+    cursor.execute('CREATE TABLE IF NOT EXISTS commander_table (id INTEGER PRIMARY KEY AUTOINCREMENT, name text NOT NULL);')
+    con.commit()
+    for item in data:
+        if not item['legalities']['brawl'] == "legal":
+            continue
+        if not "Legendary" in item['type_line']:
+            continue
+        if not "Creature" in item['type_line']:
+            continue
+        if item['rarity'] == "rare" or item['rarity'] == "mythic":
+            sql = '''INSERT INTO commander_table(name)
+                     VALUES(?) '''
+            #print(item['name'])
+            cursor.execute('INSERT INTO commander_table(name) VALUES(?)', (item['name'],))
+    con.commit()
     con.close()
-    
+
+def getCommanders():
+    con = sqlite3.connect(db_path)
+    cursor = con.cursor()
+    cursor.execute('SELECT * FROM commander_table')
+    data = cursor.fetchall()
+    return data
 
 def findMatches(relatives):
     con = sqlite3.connect(db_path)
@@ -57,21 +84,8 @@ def findMatches(relatives):
     con.close()
     return recList
 
-def writeHTML(recList, filename):
-    filename = filename+".html"
-    with open(filename, 'w') as f:
-        f.writelines('<html><body><table>\n')
-        for item in recList:
-            line = '<tr><td>'+item['name']+'</td><td><img src="'+item['image_uris']['normal']+'"></td></tr>\n'
-            f.writelines(line)
-        f.writelines('</table></body></html>\n')
-
 def getMatches(commanderCard):
-    #load scryfall data
-    #scrydata = import_bulk(bulk_path)
-    #setup edhrec api
     edhrec = EDHRec()
-    #get related cards from edhrec
     relatives = edhrec.get_commander_cards(commanderCard)
     recList = findMatches(relatives)
     return recList
@@ -102,7 +116,7 @@ def main():
         writeHTML(recList, args.filename)
 
 
-start_db(db_path)
+start_db(db_path, cmd_db_path)
 if __name__ == "__main__":
     main()
 

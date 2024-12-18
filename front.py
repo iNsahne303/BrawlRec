@@ -12,7 +12,8 @@ app = Flask(__name__)
 @app.route("/", methods=['GET', 'POST'])
 def home():
     if request.method == 'GET':
-        return render_template("index.html")
+        commanders = brawlrec.getCommanders()
+        return render_template("index.html", commanders=commanders)
     elif request.method == 'POST':
         commander = request.form['commander']
         return redirect('/search/'+commander)
@@ -20,4 +21,9 @@ def home():
 @app.route("/search/<cmd>")
 def search(cmd):
     results = brawlrec.getMatches(cmd)
-    return render_template("search.html", results=results)
+    return render_template("search.html", results=results, commander=cmd)
+
+@app.route("/search/<cmd>/paste")
+def paste(cmd):
+    results = brawlrec.getMatches(cmd)
+    return render_template("paste.html", results=results)
