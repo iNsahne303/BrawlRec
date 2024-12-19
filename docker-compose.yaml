@@ -1,0 +1,15 @@
+services:
+    app:
+        shm_size: '1000000000'
+        build:
+            context: ./app
+        tty: true
+        volumes:
+            - './app/src:/home/user'
+    nginx:
+        build: ./nginx
+        tty: true
+        links:
+            - app
+        ports:
+            - '8844:80'
