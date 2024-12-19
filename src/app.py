@@ -28,5 +28,5 @@ def paste(cmd):
     results = brawlrec.getMatches(cmd)
     return render_template("paste.html", results=results)
 
-if __name__ = "__main__"
-    app.run(host=0.0.0.0)
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')
