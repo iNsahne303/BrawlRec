@@ -5,6 +5,5 @@ lib/
 scryData/
 __pycache__/
 pyvenv.cfg
-*.html
 .DS_Store
 scrydb.sqlite

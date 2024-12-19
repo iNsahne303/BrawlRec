@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<html>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<head><title>BrawlRec Results</title></head>
+<body>
+<div>
+<table>
+        {% for card in results %} 
+        <tr>
+          <td><img src="{{ card['image_uris']['normal'] }}" title="{{ card['name'] }}"></td>
+        </tr>
+        {% endfor %}
+</table>
+</div>
+</body>
+</html>

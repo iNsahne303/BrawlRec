@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+
+<html>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<head><title>BrawlRec Results</title></head>
+<body>
+    <a href="/">Home</a><p>   </p><a href="/search/{{ commander }}/paste">Paste</a></p><br>
+<div class="flex-container">
+        {% for card in results %} 
+          <div class="flex-item"><img src="{{ card[2] }}" title="{{ card[1] }}"></div>
+        {% endfor %}
+</div>
+</body>
+</html>

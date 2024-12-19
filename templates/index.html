@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<head><title>BrawlRec</title></head>
+<script>
+function searchFunction() {
+  // Declare variables
+  var input, filter, ul, li, a, i, txtValue;
+  input = document.getElementById('commander');
+  filter = input.value.toUpperCase();
+  ul = document.getElementById("cmdUL");
+  li = ul.getElementsByTagName('li');
+
+  // Loop through all list items, and hide those who don't match the search query
+  for (i = 0; i < li.length; i++) {
+    a = li[i].getElementsByTagName("a")[0];
+    txtValue = a.textContent || a.innerText;
+    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+      li[i].style.display = "";
+    } else {
+      li[i].style.display = "none";
+    }
+  }
+}
+</script>
+<body>
+<h1>Welcome to BrawlRec</h1>
+<br><br><br>
+<div>
+<form method="POST"
+      action="{{ url_for('home')}}">
+        <input type="text"
+              id="commander"
+              placeholder="The Ur-Dragon"
+              onkeyup="searchFunction()">
+        <button type="submit">Search</button>
+        <ul id="cmdUL">
+          {% for cmd_name in commanders %}
+          <li><a href="/search/{{ cmd_name[1] }}">{{ cmd_name[1] }}</a></li>
+          {% endfor %}
+        </ul>
+    </form>
+</div>
+</body>
+</html>
