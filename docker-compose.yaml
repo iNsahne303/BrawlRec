@@ -4,8 +4,6 @@ services:
         build:
             context: ./app
         tty: true
-        volumes:
-            - './app/src:/home/user'
     nginx:
         build: ./nginx
         tty: true
